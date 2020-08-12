@@ -16,7 +16,7 @@ def create_curationObject():
     "name": "MRC Centre for Global Infectious Disease Analysis",
     "affiliation": ["Imperial College London"],
     "curationDate":now.strftime("%Y-%m-%d")
-    }    
+    }
     return(curatedBy)
 
 
@@ -41,7 +41,7 @@ def get_meta_content(metacontentfield):
         for eachitem in metacontentfield:
             metaitem = eachitem.get("content")
             metacontentlist.append(metaitem)
-    return(metacontentlist)  
+    return(metacontentlist)
 
 
 def transform_pub_meta(soupobject):
@@ -63,7 +63,7 @@ def transform_pub_meta(soupobject):
         "@type": "Publication",
         "journalName": "Imperial College London",
         "journalNameAbbreviation": "imperialcollege",
-        "publicationType": "Report", 
+        "publicationType": "Report",
         "abstract":abstract,
         "name":title,
         "datePublished":datePublished,
@@ -79,7 +79,7 @@ def transform_pub_meta(soupobject):
     if len(licensefield)>0:
         license = get_meta_content(licensefield)
         tmpdict["license"] = license
-        
+
     identifiersfield = soupobject.findAll("meta", {"name":"DC.identifier"})
     for eachitem in identifiersfield:
         eachitemcontent = eachitem.get("content")
@@ -102,7 +102,7 @@ def get_authors(soupobject):
     for eachauthor in authors:
         authparse = eachauthor.split(",")
         if (len(authparse) == 2) and len(authparse[1])<3:
-            authdict = {'@type': 'outbreak:Person', 'affiliation': [], 'name': eachauthor, 
+            authdict = {'@type': 'outbreak:Person', 'affiliation': [], 'name': eachauthor,
                        'familyName':authparse[0]}
         else:
             authdict = {'@type': 'outbreak:Person', 'affiliation': [], 'name': eachauthor}
@@ -115,7 +115,7 @@ def get_funding(soupobject):
     funders = get_meta_content(fundersfield)
     fundercheck = len(fundersfield)
     if fundercheck > 0:
-        identifiersfield = soupobject.findAll("meta", {"name":"DC.identifier"}) 
+        identifiersfield = soupobject.findAll("meta", {"name":"DC.identifier"})
         fundidlist = []
         for eachitem in identifiersfield:
             eachitemcontent = eachitem.get("content")
@@ -167,8 +167,8 @@ def transform_resource_meta(metaobject):
     tmpdict['identifier'] = create_id(tmpdict['description'])
     tmpdict['_id'] = tmpdict['identifier']
     basetype = metaobject.find("span",{"class":"link primary"}).get_text()
-    tmpurl = metaobject.find("a").get("href") 
-    
+    tmpurl = metaobject.find("a").get("href")
+
     if "http" in tmpurl:
         url = tmpurl
     else:
@@ -178,7 +178,7 @@ def transform_resource_meta(metaobject):
         datetime_object = datetime.strptime(basedate, '%d-%m-%Y')
         datePublished = datetime_object.strftime("%Y-%m-%d")
     except:
-        datePublished = "Not Available"  
+        datePublished = "Not Available"
     if "data" in basetype:
         tmpdict['@type'] = "Dataset"
         tmpdict['dataDownload'] = {
@@ -223,10 +223,10 @@ def get_reports():
         base_info["author"] = author_list
         if fund_flag == True:
             base_info["funding"] = fund_list
-        
+
         yield(base_info)
 
-        
+
 def get_resources():
     curatedBy = create_curationObject()
     url = 'http://www.imperial.ac.uk/mrc-global-infectious-disease-analysis/covid-19/covid-19-scientific-resources/'
@@ -238,7 +238,7 @@ def get_resources():
         resourcelist = []
         for eachblock in resourceclass:
             try:
-                tmpdict = transform_resource_meta(eachblock) 
+                tmpdict = transform_resource_meta(eachblock)
                 tmpdict["curatedBy"] = curatedBy
                 yield(tmpdict)
             except:
@@ -246,7 +246,7 @@ def get_resources():
     else:
         logging.warning("Imperial college Covid-19 resources not found")
 
-        
+
 def get_analysis():
     curatedBy = create_curationObject()
     analysislisturl = 'http://www.imperial.ac.uk/mrc-global-infectious-disease-analysis/covid-19/covid-19-planning-tools/'
@@ -270,7 +270,7 @@ def get_analysis():
             }
             try:
                 tmpdict['name'] = eachblock.find("h3",{"class":"title"}).get_text()
-                tmpurl = eachblock.find("a").get("href") 
+                tmpurl = eachblock.find("a").get("href")
                 tmpdict['species'] = "Homo sapiens"
                 tmpdict['infectiousAgent'] = "SARS-CoV-2"
                 tmpdict['infectiousDisease'] = "COVID-19"
@@ -289,7 +289,7 @@ def get_analysis():
     else:
         logging.warning("Imperial college Covid-19 planning tools not found")
 
-        
+
 def load_annotations():
     try:
         report_list = get_reports()
@@ -297,15 +297,15 @@ def load_annotations():
             yield(eachreport)
     except:
         logging.warning("report fetching failed")
-    try:
-        resource_list = get_resources()
-        for eachresource in resource_list:
-            yield(eachresource)
-    except:
-        logging.warning("resource fetching failed")
-    try:
-        analyses_list = get_analyses()
-        for eachanalysis in analyses_list:
-            yield(eachanalysis)
-    except:
-        logging.warning("analysis fetching failed")
+    # try:
+    #     resource_list = get_resources()
+    #     for eachresource in resource_list:
+    #         yield(eachresource)
+    # except:
+    #     logging.warning("resource fetching failed")
+    # try:
+    #     analyses_list = get_analyses()
+    #     for eachanalysis in analyses_list:
+    #         yield(eachanalysis)
+    # except:
+    #     logging.warning("analysis fetching failed")
